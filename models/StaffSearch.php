@@ -5,7 +5,9 @@ namespace app\models;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\Staff;
+use yii\data\Pagination;
+use yii\db\Query;
+use yii\db\Expression;
 
 /**
  * StaffSearch represents the model behind the search form about `app\models\Staff`.
@@ -47,13 +49,12 @@ class StaffSearch extends Staff
     public function search($params)
     {
         $query = Staff::find();
-        $query->joinWith(['staffGroups', 'staffSkills']);
+        $pagination = new Pagination();
+        $pagination->pageSize = self::LIMIT_ITEMS_ON_PAGE;
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => [
-                'pageSize' => self::LIMIT_ITEMS_ON_PAGE,
-            ],
+            'pagination' => $pagination
         ]);
 
         $this->load($params);
@@ -65,9 +66,28 @@ class StaffSearch extends Staff
         $query->andFilterWhere([
             'id' => $this->id,
             'in_place' => $this->in_place,
-            'staff_group.group_id' => $this->group,
-            'staff_skill.skill_id' => $this->skill,
         ]);
+
+        if (!empty($this->group)) {
+
+            $subQuery = (new Query)
+                ->select([new Expression('1')])
+                ->from('staff_group staff_group')
+                ->where('staff.id = staff_group.staff_id')
+                ->andWhere('staff_group.group_id = :group_id', [':group_id' => $this->group]);
+
+            $query->andFilterWhere(['exists', $subQuery]);
+        }
+
+        if (!empty($this->skill)) {
+            $subQuery = (new Query)
+                ->select([new Expression('1')])
+                ->from('staff_skill staff_skill')
+                ->where('staff.id = staff_skill.staff_id')
+                ->andWhere('staff_skill.skill_id = :skill_id', [':skill_id' => $this->skill]);
+
+            $query->andFilterWhere(['exists', $subQuery]);
+        }
 
         $query->andFilterWhere(['like', 'name', $this->name]);
 
