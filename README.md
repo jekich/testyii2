@@ -1,6 +1,16 @@
 Yii 2 test
 ============================
 
+INSTALL
+-------------
+
+1. Создать БД
+2. Создать файл config/local.php (пример ниже)
+3. Выполнить миграции.
+
+P.S. Тестовые данные зальются при выполнении миграций, также дамп БД лежит в папке data
+
+
 
 CONFIGURATION
 -------------
@@ -11,11 +21,15 @@ Edit the file `config/local.php` with real data, for example:
 
 ```php
 return [
-    'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=localhost;dbname=yii2basic',
-    'username' => 'root',
-    'password' => '1234',
-    'charset' => 'utf8',
+    'components' => [
+        'db' => [
+            'class' => 'yii\db\Connection',
+            'dsn' => 'mysql:host=localhost;dbname=testdev',
+            'username' => 'root',
+            'password' => '',
+            'charset' => 'utf8',
+        ]
+    ]
 ];
 ```
 
